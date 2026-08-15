@@ -6,6 +6,7 @@ import { AREAS, CURSOS, porSlug, areaNome } from "./cursos.js";
 import { WA_NUMBER, CIDADES } from "./config.js";
 import { salvarLead, contexto, sincronizarPendentes } from "./db.js";
 import * as anim from "./anim.js";
+import { icone, MINI, CHECK_OK } from "./icones.js";
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -102,7 +103,7 @@ function montarNavAreas() {
   navAreas.innerHTML = AREAS.map((a) => {
     const n = CURSOS.filter((c) => c.area === a.id).length;
     return `<button class="area-btn" data-area="${a.id}" role="tab" aria-selected="false">
-      <span class="area-ic" aria-hidden="true">${a.icone}</span>
+      <span class="area-ic" aria-hidden="true">${icone(a.id)}</span>
       <span class="area-txt"><b>${esc(a.nome)}</b><small>${n} curso${n > 1 ? "s" : ""}</small></span>
     </button>`;
   }).join("");
@@ -116,7 +117,7 @@ function montarNavAreas() {
   });
 }
 
-function cardCurso(c) {
+function cardCurso(c, i = 0) {
   const flag = c.novo ? `<div class="ribbon novo">Novo</div>`
              : c.combo ? `<div class="ribbon combo">Combo</div>`
              : c.destaque ? `<div class="ribbon">Destaque</div>` : "";
@@ -125,6 +126,7 @@ function cardCurso(c) {
     : `<span class="modality presencial">Presencial</span>`;
 
   return `<article class="card" data-slug="${c.slug}" tabindex="0" role="button"
+            style="--i:${Math.min(i, 14)}"
             aria-label="Ver detalhes de ${esc(c.nome)}">
       ${flag}
       <div class="card-top"><span class="cat">${esc(areaNome(c.area))}</span>${mod}</div>
@@ -165,9 +167,27 @@ function render() {
     } nesta área. Toque em "Todas as modalidades" para ver o restante.</p>`;
     return;
   }
-  grid.innerHTML = lista.map(cardCurso).join("");
-  anim.entradaCards($$(".card", grid));
+  grid.innerHTML = lista.map((c, i) => cardCurso(c, i)).join("");
 }
+
+/* ondinha dourada saindo de onde o dedo tocou.
+   No celular não existe :hover — o retorno visual tem que vir do toque. */
+const SEM_MOVIMENTO = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+grid.addEventListener("pointerdown", (e) => {
+  if (SEM_MOVIMENTO) return;
+  const card = e.target.closest(".card");
+  if (!card) return;
+
+  const r = card.getBoundingClientRect();
+  const d = Math.max(r.width, r.height) * 2.2;
+  const onda = document.createElement("span");
+  onda.className = "onda";
+  onda.style.cssText =
+    `left:${e.clientX - r.left}px;top:${e.clientY - r.top}px;width:${d}px;height:${d}px`;
+  card.appendChild(onda);
+  onda.addEventListener("animationend", () => onda.remove(), { once: true });
+}, { passive: true });
 
 /* abrir detalhes: clique ou Enter/Espaço no card */
 grid.addEventListener("click", (e) => {
@@ -213,12 +233,12 @@ function viewDetalhe(c) {
       <h2>${esc(c.nome)}</h2>
       <p class="modal-sub">${esc(c.resumo)}</p>
       <div class="modal-facts">
-        <span>⏱️ ${esc(c.carga)}</span>
-        <span>📍 ${esc(c.cidade)}</span>
-        <span>📜 Certificado de conclusão</span>
-        ${c.professor ? `<span>👩‍🏫 ${esc(c.professor)}</span>` : ""}
-        ${c.turnos ? `<span>🕗 ${c.turnos.map(esc).join(" · ")}</span>` : ""}
-        ${c.idade_min ? `<span>👤 ${esc(c.idade_min)}</span>` : ""}
+        <span>${MINI.relogio}${esc(c.carga)}</span>
+        <span>${MINI.local}${esc(c.cidade)}</span>
+        <span>${MINI.certificado}Certificado de conclusão</span>
+        ${c.professor ? `<span>${MINI.professor}${esc(c.professor)}</span>` : ""}
+        ${c.turnos ? `<span>${MINI.turno}${c.turnos.map(esc).join(" · ")}</span>` : ""}
+        ${c.idade_min ? `<span>${MINI.idade}${esc(c.idade_min)}</span>` : ""}
       </div>
     </header>
 
@@ -424,7 +444,7 @@ async function enviarLead(form) {
 function viewSucesso(lead, url, r) {
   return `<div class="modal-card modal-ok">
     <button class="modal-x" data-fechar aria-label="Fechar">&times;</button>
-    <div class="ok-ic modal-anim">✅</div>
+    <div class="ok-ic modal-anim">${CHECK_OK}</div>
     <h2 class="modal-anim">Cadastro feito, ${esc(lead.nome.split(" ")[0])}!</h2>
     <p class="modal-sub modal-anim">Abrimos o WhatsApp em outra aba com a sua mensagem pronta.
       Se não abriu, toque no botão abaixo.</p>

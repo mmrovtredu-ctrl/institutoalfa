@@ -211,7 +211,8 @@ function abrirCurso(slug) {
   if (!c) return;
   cursoAtual = c;
   dlg.innerHTML = viewDetalhe(c);
-  anim.transicaoModal(() => { if (!dlg.open) dlg.showModal(); });
+  if (!dlg.open) dlg.showModal();
+  dlg.querySelector(".modal-card").scrollTop = 0;
   anim.cascataModal(dlg);
   history.replaceState(null, "", "#curso=" + c.slug);
 }
@@ -274,6 +275,11 @@ function viewDetalhe(c) {
         ${c.beneficios ? `<div class="benef modal-anim"><h4>Você leva</h4>${lista(c.beneficios, "check")}</div>` : ""}
       </aside>
     </div>
+
+    <div class="modal-cta-bar">
+      <div class="cta-preco">${precoResumo(c)}</div>
+      <button class="btn btn-gold" data-quero>Quero mais informações</button>
+    </div>
   </div>`;
 }
 
@@ -298,10 +304,14 @@ function abrirFormulario({ curso = null, cursoPreSelecionado = "" } = {}) {
   const c = curso || cursoAtual;
   cursoAtual = c;
   dlg.innerHTML = viewFormulario(c, cursoPreSelecionado);
-  anim.transicaoModal(() => { if (!dlg.open) dlg.showModal(); });
+  if (!dlg.open) dlg.showModal();
+  dlg.querySelector(".modal-card").scrollTop = 0;
   anim.cascataModal(dlg);
   formAbertoEm = Date.now();
-  setTimeout(() => $("#f-nome")?.focus(), 120);
+  /* no celular, focar sozinho abre o teclado e empurra o formulário para fora
+     da tela — deixamos a pessoa tocar no campo quando quiser */
+  if (window.matchMedia("(min-width: 800px)").matches)
+    setTimeout(() => $("#f-nome")?.focus(), 120);
 }
 
 function viewFormulario(c, dica) {
@@ -555,7 +565,8 @@ function contadores() {
   bindCTAs();
 
   await anim.initAnime();
-  anim.prepararLayoutModal(dlg);
+  /* sem transição de layout (FLIP) no <dialog>: era ela que embaralhava
+     o cabeçalho por cima do conteúdo ao rolar */
   anim.heroTitulo();
   anim.seloPulsando();
   contadores();

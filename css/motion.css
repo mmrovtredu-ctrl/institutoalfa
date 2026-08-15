@@ -399,3 +399,431 @@ input, select, textarea { font-size: 16px; }
 .fab-label .ic-mini { margin-right: 0; margin-left: .4em; }
 .phone { display: flex; align-items: center; }
 .modal-facts .ic-mini { width: 1.15em; height: 1.15em; opacity: 1; }
+
+/* ============================================================
+   13. MODAL DO CURSO — os três defeitos e o redesenho para o dedo
+   ============================================================ */
+
+/* 13.1 CENTRALIZAR
+   O reset `*{margin:0}` do styles.css apagava o `margin:auto` que o
+   navegador aplica em <dialog>:modal. Resultado: a janela grudava no
+   canto superior esquerdo, em qualquer tela. */
+dialog#cursoModal { margin: auto; }
+
+/* 13.2 O CABEÇALHO POR CIMA DO CONTEÚDO
+   .modal-head é um elemento <header>, então herdava o
+   `position:sticky; top:0; z-index:80; backdrop-filter:blur` do
+   cabeçalho do site. Ao rolar dentro do modal, ele flutuava sobre o
+   texto — com fundo semitransparente, misturando as duas coisas. */
+#cursoModal .modal-head {
+  position: static;
+  z-index: auto;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* 13.3 O CARD DE PREÇO GRUDADO
+   `.pc{position:sticky;top:0}` faz sentido na coluna lateral do desktop.
+   No celular, com uma coluna só, ele flutuava sobre o resto. */
+@media (max-width: 800px) {
+  #cursoModal .pc { position: static; }
+}
+
+/* ------------------------------------------------------------
+   13.4 DESKTOP — janela centrada, entrando com escala
+------------------------------------------------------------ */
+dialog#cursoModal {
+  max-height: min(92vh, 92dvh);
+  border: 0;
+}
+#cursoModal .modal-card {
+  max-height: min(92vh, 92dvh);
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: no-preference) {
+  dialog#cursoModal[open] { animation: modalEntra .26s cubic-bezier(.2,.9,.25,1); }
+  dialog#cursoModal[open]::backdrop { animation: fundoEntra .26s ease; }
+  @keyframes modalEntra { from { opacity: 0; transform: translateY(14px) scale(.97); } }
+  @keyframes fundoEntra { from { opacity: 0; } }
+}
+
+/* botão de fechar sempre grande e alcançável */
+#cursoModal .modal-x {
+  width: 44px;
+  height: 44px;
+  font-size: 1.7rem;
+  background: rgba(12,12,14,.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ------------------------------------------------------------
+   13.5 CELULAR — folha que sobe de baixo
+   O polegar alcança o rodapé da tela; não alcança o topo.
+------------------------------------------------------------ */
+@media (max-width: 800px) {
+  dialog#cursoModal {
+    width: 100%;
+    max-width: 100%;
+    max-height: 92dvh;
+    margin: auto auto 0;          /* encostada embaixo, centrada na horizontal */
+  }
+
+  #cursoModal .modal-card {
+    max-height: 92dvh;
+    border-radius: 22px 22px 0 0;
+    border-bottom: 0;
+    padding-top: 14px;            /* espaço para a alcinha */
+  }
+
+  /* alcinha de arrastar — o sinal visual de "isto é uma folha" */
+  #cursoModal .modal-card::before {
+    content: "";
+    position: absolute;
+    top: 8px; left: 50%;
+    transform: translateX(-50%);
+    width: 44px; height: 4px;
+    border-radius: 99px;
+    background: rgba(255,255,255,.28);
+    z-index: 6;
+  }
+
+  #cursoModal .modal-x { top: 16px; right: 12px; }
+  #cursoModal .modal-head { padding-top: 34px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    dialog#cursoModal[open] { animation: folhaSobe .3s cubic-bezier(.2,.9,.25,1); }
+    @keyframes folhaSobe { from { transform: translateY(100%); } }
+  }
+}
+
+/* ------------------------------------------------------------
+   13.6 BARRA DE AÇÃO FIXA (celular)
+   Antes era preciso rolar o modal inteiro para achar o botão.
+   Agora o preço e o "Quero mais informações" ficam sempre à vista.
+------------------------------------------------------------ */
+.modal-cta-bar { display: none; }
+
+@media (max-width: 800px) {
+  .modal-cta-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    bottom: 0;
+    z-index: 7;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: rgba(15,15,17,.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--line-2);
+  }
+  .modal-cta-bar .cta-preco { flex: 1; min-width: 0; line-height: 1.15; }
+  .modal-cta-bar .cta-preco .old   { font-size: .72rem; }
+  .modal-cta-bar .cta-preco .new b { font-size: 1.15rem; }
+  .modal-cta-bar .cta-preco .unit  { font-size: .74rem; }
+  .modal-cta-bar .cta-preco .consult { font-size: .86rem; color: var(--gold); font-weight: 800; }
+  .modal-cta-bar .btn {
+    flex: none;
+    padding: 13px 18px;
+    min-height: 48px;
+    font-size: .92rem;
+    white-space: nowrap;
+  }
+
+  /* o botão de dentro do card de preço vira redundante — fica, mas discreto */
+  #cursoModal .pc-nota { display: none; }
+}
+
+/* ------------------------------------------------------------
+   13.7 FORMULÁRIO DENTRO DO MODAL, no celular
+------------------------------------------------------------ */
+@media (max-width: 800px) {
+  #cursoModal .lead-form { padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+  #cursoModal .modal-ok  { padding-bottom: calc(36px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* ============================================================
+   14. "COMO FUNCIONA" — a faixa entre Massoterapia e Informática
+   Quatro cenas desenhadas em CSS puro, no espírito das animações
+   do site de referência: nada de biblioteca, nada de imagem.
+   ============================================================ */
+.jornada-sec { padding-top: 0; }
+
+.jornada {
+  background:
+    radial-gradient(circle at 8% 0, rgba(245,184,46,.10), transparent 55%),
+    var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg, 22px);
+  padding: 40px 30px 34px;
+  position: relative;
+  overflow: hidden;
+}
+
+.jornada-head { text-align: center; margin-bottom: 34px; }
+.jornada-kicker {
+  display: inline-block;
+  font-size: .7rem; font-weight: 800; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 10px;
+}
+.jornada-head h2 {
+  font-family: 'Anton', sans-serif; text-transform: uppercase;
+  font-size: clamp(1.7rem, 5.2vw, 2.6rem); line-height: 1; margin-bottom: 8px;
+}
+.jornada-head p { color: var(--muted); font-size: .96rem; }
+
+/* ---------- os quatro passos ---------- */
+.jornada-passos {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  position: relative;
+}
+
+/* linha que costura os passos, com um pulso correndo por cima */
+.jornada-passos::before {
+  content: "";
+  position: absolute;
+  top: 92px; left: 12%; right: 12%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--line-2) 12%, var(--line-2) 88%, transparent);
+}
+
+.passo {
+  position: relative;
+  text-align: center;
+  padding: 0 8px;
+}
+.passo h3 {
+  font-family: 'Anton', sans-serif; text-transform: uppercase;
+  font-size: 1.02rem; letter-spacing: .03em; margin: 16px 0 7px;
+}
+.passo > p { color: var(--muted); font-size: .86rem; line-height: 1.5; }
+
+.passo-n {
+  display: grid; place-items: center;
+  width: 26px; height: 26px; margin: 0 auto 12px;
+  border-radius: 50%;
+  background: rgba(245,184,46,.14);
+  border: 1px solid rgba(245,184,46,.45);
+  color: var(--gold);
+  font-size: .78rem; font-weight: 900;
+}
+
+/* palco de cada cena */
+.cena {
+  position: relative;
+  width: 96px; height: 84px;
+  margin: 0 auto;
+  border-radius: 16px;
+  background: rgba(255,255,255,.035);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+/* ---------- cena 1: escolher o curso ---------- */
+.cena-escolha .mini-card {
+  position: absolute; left: 18px; width: 60px; height: 15px;
+  border-radius: 5px; background: rgba(255,255,255,.13);
+}
+.cena-escolha .c1 { top: 16px; }
+.cena-escolha .c2 { top: 35px; }
+.cena-escolha .c3 { top: 54px; }
+.cena-escolha .toque {
+  position: absolute; left: 40px; top: 30px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--gold); opacity: 0;
+}
+
+/* ---------- cena 2: conversa no WhatsApp ---------- */
+.cena-conversa .balao { position: absolute; border-radius: 10px; }
+.cena-conversa .b1 {
+  right: 12px; top: 16px; width: 52px; height: 18px;
+  background: rgba(37,211,102,.85);
+}
+.cena-conversa .b2 {
+  left: 12px; top: 44px; width: 46px; height: 20px;
+  background: rgba(255,255,255,.14);
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+.cena-conversa .b2 i {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--muted);
+}
+
+/* ---------- cena 3: vaga garantida ---------- */
+.cena-vaga .carimbo {
+  position: absolute; inset: 0; margin: auto;
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 3px solid var(--gold);
+  box-shadow: inset 0 0 0 3px rgba(245,184,46,.18);
+}
+.cena-vaga .carimbo::after {
+  content: ""; position: absolute; inset: 0; margin: auto;
+  width: 18px; height: 9px; border-left: 3px solid var(--gold);
+  border-bottom: 3px solid var(--gold); transform: rotate(-45deg) translate(1px,-2px);
+}
+.cena-vaga .onda-carimbo {
+  position: absolute; inset: 0; margin: auto;
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 2px solid var(--gold); opacity: 0;
+}
+
+/* ---------- cena 4: certificado ---------- */
+.cena-certificado .papel {
+  position: absolute; inset: 0; margin: auto;
+  width: 56px; height: 46px; border-radius: 5px;
+  background: rgba(255,255,255,.10); border: 1px solid var(--line-2);
+  display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 0 10px;
+}
+.cena-certificado .papel i {
+  height: 3px; border-radius: 2px; background: rgba(255,255,255,.3);
+  transform-origin: left center; transform: scaleX(0);
+}
+.cena-certificado .selo {
+  position: absolute; right: 16px; bottom: 14px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 4px 12px -3px rgba(245,184,46,.7);
+}
+
+/* ---------- rodapé da faixa ---------- */
+.jornada-cta {
+  margin-top: 34px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.jornada-nota { color: var(--muted-2); font-size: .8rem; }
+
+/* ============================================================
+   14.1 A ANIMAÇÃO — ciclo de 12 s, cada passo tem a sua vez.
+   Regra que aprendi errando: a cena NUNCA fica vazia. No repouso
+   ela já está desenhada; a animação é só o destaque da vez.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+
+  /* pulso dourado correndo pela linha que costura os passos.
+     background-position em vez de left: não refaz layout. */
+  .jornada-passos::after {
+    content: "";
+    position: absolute;
+    top: 91px; left: 12%; right: 12%;
+    height: 4px; border-radius: 99px;
+    background: linear-gradient(90deg,
+      transparent 44%, var(--gold) 50%, transparent 56%);
+    background-size: 320% 100%;
+    background-repeat: no-repeat;
+    background-position: 130% 0;
+    filter: blur(1px);
+    animation: pulsoLinha 12s cubic-bezier(.5,0,.5,1) infinite;
+  }
+  @keyframes pulsoLinha {
+    0%   { background-position: 130% 0; }
+    92%  { background-position: -30% 0; }
+    100% { background-position: -30% 0; }
+  }
+
+  /* o número acende quando é a vez dele */
+  .passo-n { animation: acendeN 12s ease-in-out infinite; animation-delay: calc(var(--p) * 3s); }
+  @keyframes acendeN {
+    0%, 20%, 100% { background: rgba(245,184,46,.14); color: var(--gold);
+                    transform: scale(1); box-shadow: none; }
+    5%            { background: var(--gold); color: #1a1200;
+                    transform: scale(1.16); box-shadow: 0 0 0 6px rgba(245,184,46,.16); }
+    14%           { transform: scale(1); }
+  }
+
+  /* a cena da vez ganha um leve realce de moldura */
+  .cena { animation: cenaAtiva 12s ease-in-out infinite; animation-delay: calc(var(--p) * 3s); }
+  @keyframes cenaAtiva {
+    0%, 22%, 100% { border-color: var(--line);              background: rgba(255,255,255,.035); }
+    6%, 16%       { border-color: rgba(245,184,46,.4);      background: rgba(245,184,46,.06); }
+  }
+
+  /* ---- cena 1: o dedo escolhe ---- */
+  .cena-escolha .toque { animation: dedo 12s ease-in-out infinite; }
+  @keyframes dedo {
+    0%, 2%   { opacity: 0; transform: scale(.4); }
+    5%       { opacity: .9; transform: scale(1); }
+    11%      { opacity: 0; transform: scale(2.2); }
+    100%     { opacity: 0; }
+  }
+  .cena-escolha .c2 { animation: cursoEscolhido 12s ease-in-out infinite; }
+  @keyframes cursoEscolhido {
+    0%, 4%, 20%, 100% { background: rgba(255,255,255,.13); width: 60px; }
+    7%, 17%           { background: var(--gold);           width: 66px; }
+  }
+
+  /* ---- cena 2: a conversa (os balões ficam, só pulsam na vez) ---- */
+  .cena-conversa .b1 { animation: balaoPulsa 12s ease-in-out infinite; animation-delay: 3s; }
+  .cena-conversa .b2 { animation: balaoPulsa 12s ease-in-out infinite; animation-delay: 3.4s; }
+  @keyframes balaoPulsa {
+    0%, 18%, 100% { transform: none;                    opacity: .78; }
+    4%            { transform: translateY(-3px) scale(1.06); opacity: 1; }
+    9%            { transform: none;                    opacity: 1; }
+  }
+  .cena-conversa .b2 i { animation: digitar 1.5s ease-in-out infinite; }
+  .cena-conversa .b2 i:nth-child(2) { animation-delay: .18s; }
+  .cena-conversa .b2 i:nth-child(3) { animation-delay: .36s; }
+
+  /* ---- cena 3: o carimbo bate (e fica) ---- */
+  .cena-vaga .carimbo { animation: carimbar 12s ease-in-out infinite; animation-delay: 6s; }
+  @keyframes carimbar {
+    0%, 18%, 100% { transform: scale(1)   rotate(-8deg); opacity: .8; }
+    2%            { transform: scale(1.9) rotate(-24deg); opacity: .25; }
+    5%            { transform: scale(.9)  rotate(-8deg);  opacity: 1; }
+    8%            { transform: scale(1)   rotate(-8deg);  opacity: 1; }
+  }
+  .cena-vaga .onda-carimbo { animation: ondaCarimbo 12s ease-out infinite; animation-delay: 6s; }
+  @keyframes ondaCarimbo {
+    0%, 4%   { opacity: .75; transform: scale(1); }
+    13%      { opacity: 0;   transform: scale(2.2); }
+    100%     { opacity: 0; }
+  }
+
+  /* ---- cena 4: o certificado se escreve, o selo cai ---- */
+  .cena-certificado .papel i { animation: escrever 12s ease-in-out infinite; animation-delay: 9s; }
+  .cena-certificado .papel i:nth-child(2) { animation-delay: 9.2s; }
+  .cena-certificado .papel i:nth-child(3) { animation-delay: 9.4s; }
+  @keyframes escrever {
+    0%       { transform: scaleX(0); }
+    5%, 100% { transform: scaleX(1); }
+  }
+  .cena-certificado .selo { animation: selar 12s cubic-bezier(.2,1.5,.4,1) infinite; animation-delay: 9.5s; }
+  @keyframes selar {
+    0%       { transform: scale(0)   rotate(-40deg); }
+    6%, 100% { transform: scale(1)   rotate(0); }
+  }
+}
+
+/* no repouso (e sem animação) tudo já está desenhado */
+.cena-conversa .balao { opacity: .78; }
+.cena-vaga .carimbo   { opacity: .8; transform: scale(1) rotate(-8deg); }
+.cena-certificado .papel i { transform: scaleX(1); }
+.cena-certificado .selo    { transform: scale(1); }
+
+/* ============================================================
+   14.2 CELULAR — dois por linha, cena menor, linha vira vertical
+   ============================================================ */
+@media (max-width: 860px) {
+  .jornada { padding: 32px 18px 28px; }
+  .jornada-passos { grid-template-columns: repeat(2, 1fr); gap: 26px 12px; }
+  .jornada-passos::before, .jornada-passos::after { display: none; }
+  .cena { width: 82px; height: 72px; }
+  .passo h3 { font-size: .92rem; margin-top: 13px; }
+  .passo > p { font-size: .8rem; }
+  .jornada-cta .btn { width: 100%; }
+}
+
+@media (max-width: 380px) {
+  .jornada-passos { grid-template-columns: 1fr; gap: 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jornada-passos::after { display: none; }
+  .cena-escolha .toque, .cena-conversa .balao, .cena-vaga .carimbo,
+  .cena-vaga .onda-carimbo, .cena-certificado .selo { opacity: 1; transform: none; animation: none; }
+  .cena-certificado .papel i { transform: scaleX(1); animation: none; }
+  .passo-n { animation: none; }
+}

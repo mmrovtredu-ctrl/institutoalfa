@@ -1,0 +1,401 @@
+/* ============================================================
+   MOTION — animações e microinterações do Instituto Alfa.
+   Carregado DEPOIS de styles.css. Não muda cor nem layout:
+   só movimento, estado de toque e os ícones das áreas.
+
+   Feito para o dedo, não para o mouse: no celular não existe
+   :hover, então todo retorno visual vem de :active e de
+   animação contínua.
+
+   Tudo aqui é enfeite. Se o arquivo não carregar, o site
+   continua inteiro e clicável.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   0. Rede de segurança
+   [hidden] do navegador perde para qualquer display do autor.
+   Era exatamente isso que mantinha o botão de play na tela.
+------------------------------------------------------------ */
+[hidden] { display: none !important; }
+
+/* Sem realce cinza do iOS ao tocar — o retorno é o nosso. */
+a, button, .card, .area-btn, [role="button"] { -webkit-tap-highlight-color: transparent; }
+
+/* ============================================================
+   1. VÍDEO DA TURMA
+   O play some ao tocar e volta quando o vídeo pausa ou acaba.
+   ============================================================ */
+.play-btn {
+  transition: opacity .28s ease, transform .28s cubic-bezier(.2,.9,.25,1);
+  will-change: transform, opacity;
+}
+.play-btn.off {
+  opacity: 0;
+  transform: scale(.55);
+  pointer-events: none;
+}
+.play-btn.off::before { animation: none; opacity: 0; }
+
+/* legenda sai da frente dos controles nativos enquanto toca */
+.video-card .video-legenda { transition: opacity .3s ease; }
+.video-card.tocando .video-legenda { opacity: 0; }
+
+/* ============================================================
+   2. ÍCONES DAS ÁREAS
+   Substituem os emojis. Herdam a cor do botão — cinza quando
+   inativo, dourado quando a área está selecionada.
+   ============================================================ */
+.area-ic {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 12px;
+  background: rgba(255,255,255,.045);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  filter: none;                       /* anula o grayscale que era pro emoji */
+  transition: background .25s ease, border-color .25s ease,
+              color .25s ease, transform .25s cubic-bezier(.2,.9,.25,1);
+}
+.area-ic .ic { width: 22px; height: 22px; display: block; }
+.area-ic .ic * { transform-box: fill-box; transform-origin: center; }
+
+.area-btn.active .area-ic {
+  color: var(--gold);
+  background: rgba(245,184,46,.14);
+  border-color: rgba(245,184,46,.45);
+  transform: scale(1.06);
+}
+
+/* toque: afunda e volta */
+.area-btn:active { transform: scale(.97); }
+.area-btn:active .area-ic { transform: scale(.92); }
+
+/* anel dourado que abre uma vez quando a área é escolhida */
+.area-ic { position: relative; }
+.area-btn.active .area-ic::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  border: 1.5px solid var(--gold);
+  pointer-events: none;
+  animation: anelArea .6s ease-out forwards;
+}
+
+@keyframes anelArea {
+  from { transform: scale(1);   opacity: .9; }
+  to   { transform: scale(1.7); opacity: 0;  }
+}
+
+/* ============================================================
+   3. VIDA DENTRO DOS ÍCONES
+   Parado é discreto. Área ativa fica mais viva.
+   Só transform e opacity — não repinta, não esquenta o celular.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+
+  /* capelo: a borla balança */
+  .ic-tassel { animation: borla 3.6s ease-in-out infinite; transform-origin: top center; }
+  @keyframes borla { 0%,100%{transform:rotate(0)} 35%{transform:rotate(11deg)} 70%{transform:rotate(-7deg)} }
+
+  /* saúde: batimento correndo + coração pulsando */
+  .ic-linha   { stroke-dasharray: 30; stroke-dashoffset: 30; animation: tracar 3s ease-in-out infinite; }
+  .ic-coracao { animation: bater 2.2s ease-in-out infinite; }
+  @keyframes tracar { 0%{stroke-dashoffset:30} 45%,100%{stroke-dashoffset:0} }
+  @keyframes bater  { 0%,100%{transform:scale(1)} 14%{transform:scale(1.16)} 28%{transform:scale(1)} 42%{transform:scale(1.1)} }
+
+  /* beleza: brilhos fora de compasso */
+  .ic-brilho    { animation: brilhar 2.8s ease-in-out infinite; }
+  .ic-brilho.b2 { animation-delay: .55s; }
+  .ic-brilho.b3 { animation-delay: 1.15s; }
+  @keyframes brilhar { 0%,100%{transform:scale(1);opacity:.85} 50%{transform:scale(1.2);opacity:1} }
+
+  /* informática: cursor piscando */
+  .ic-cursor { animation: piscar 1.15s steps(1) infinite; }
+  @keyframes piscar { 0%,49%{opacity:1} 50%,100%{opacity:.15} }
+
+  /* negócios: barras subindo em sequência */
+  .ic-barra    { transform-origin: bottom center; animation: subir 3.2s ease-in-out infinite; }
+  .ic-barra.b2 { animation-delay: .18s; }
+  .ic-barra.b3 { animation-delay: .36s; }
+  @keyframes subir { 0%,72%,100%{transform:scaleY(1)} 20%{transform:scaleY(.45)} 46%{transform:scaleY(1.08)} }
+
+  /* serviços: campainha tocando */
+  .ic-sino   { transform-origin: top center; animation: tocar 3.4s ease-in-out infinite; }
+  .ic-badalo { animation: badalar 3.4s ease-in-out infinite; }
+  @keyframes tocar   { 0%,72%,100%{transform:rotate(0)} 78%{transform:rotate(11deg)} 85%{transform:rotate(-9deg)} 92%{transform:rotate(4deg)} }
+  @keyframes badalar { 0%,72%,100%{transform:translateX(0)} 80%{transform:translateX(1.6px)} 88%{transform:translateX(-1.4px)} }
+
+  /* industrial: engrenagem girando devagar */
+  .ic-engrenagem { animation: rodar 9s linear infinite; }
+  @keyframes rodar { to { transform: rotate(360deg); } }
+
+  /* educação: página virando */
+  .ic-pagina { transform-origin: left center; animation: virar 4.2s ease-in-out infinite; }
+  @keyframes virar { 0%,58%,100%{transform:scaleX(1)} 72%{transform:scaleX(.12)} 86%{transform:scaleX(1)} }
+
+  /* idiomas: pontinhos digitando */
+  .ic-ponto    { animation: digitar 1.5s ease-in-out infinite; }
+  .ic-ponto.p2 { animation-delay: .18s; }
+  .ic-ponto.p3 { animation-delay: .36s; }
+  @keyframes digitar { 0%,60%,100%{transform:translateY(0);opacity:.55} 30%{transform:translateY(-2.6px);opacity:1} }
+
+  /* fora da área ativa, tudo mais devagar e discreto */
+  .area-btn:not(.active) .ic * { animation-duration: 7s; opacity: .8; }
+}
+
+/* ============================================================
+   4. CARDS DE CURSO — o que o dedo mais toca
+   ============================================================ */
+
+/* 4.1 entrada em cascata, sem depender de biblioteca nenhuma */
+.card {
+  animation: cardEntra .5s cubic-bezier(.2,.9,.25,1) backwards;
+  animation-delay: calc(var(--i, 0) * 26ms);
+  transform-origin: center bottom;
+}
+@keyframes cardEntra {
+  from { opacity: 0; transform: translateY(18px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* 4.2 toque: afunda na hora. É o retorno que o hover não dá no celular. */
+.card { transition: transform .16s cubic-bezier(.2,.9,.25,1), border-color .25s ease, box-shadow .25s ease; }
+.card:active { transform: scale(.975); border-color: rgba(245,184,46,.5); }
+
+/* 4.3 ondinha saindo de onde o dedo tocou */
+.card .onda {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,184,46,.42), rgba(245,184,46,0) 68%);
+  transform: translate(-50%,-50%) scale(0);
+  pointer-events: none;
+  z-index: 0;
+  animation: ondaSai .62s ease-out forwards;
+}
+@keyframes ondaSai {
+  to { transform: translate(-50%,-50%) scale(1); opacity: 0; }
+}
+/* o conteúdo fica acima da ondinha — sem tocar na .ribbon,
+   que é absoluta e tem z-index próprio */
+.card > .card-top,
+.card > h3,
+.card > .meta,
+.card > .price-block,
+.card > .card-cta { position: relative; z-index: 1; }
+
+/* 4.4 brilho dourado atravessando o card, bem de leve */
+@media (prefers-reduced-motion: no-preference) {
+  /* background-position em vez de left: pinta, mas não refaz layout —
+     é o que segura os quadros no celular com o grid cheio de cards */
+  .card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg,
+      transparent 42%, rgba(245,184,46,.085) 50%, transparent 58%);
+    background-size: 320% 100%;
+    background-repeat: no-repeat;
+    background-position: 130% 0;
+    pointer-events: none;
+    animation: brilhoCard 7s ease-in-out infinite;
+    animation-delay: calc(var(--i, 0) * 420ms);
+  }
+  @keyframes brilhoCard {
+    0%, 62% { background-position: 130% 0; }
+    84%     { background-position: -30% 0; }
+    100%    { background-position: -30% 0; }
+  }
+}
+
+/* 4.5 a seta do "Ver detalhes" chama sozinha */
+.card-cta span[aria-hidden] { display: inline-block; }
+@media (prefers-reduced-motion: no-preference) {
+  .card-cta span[aria-hidden] { animation: setaChama 2.6s ease-in-out infinite; }
+  @keyframes setaChama {
+    0%, 68%, 100% { transform: translateX(0); }
+    78%           { transform: translateX(5px); }
+    88%           { transform: translateX(0); }
+  }
+}
+.card:active .card-cta { gap: 14px; }
+
+/* 4.6 selo "Novo" respirando */
+@media (prefers-reduced-motion: no-preference) {
+  .ribbon.novo { animation: seloNovo 2.6s ease-in-out infinite; }
+  @keyframes seloNovo {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(37,211,102,.55); }
+    50%      { box-shadow: 0 0 0 7px rgba(37,211,102,0); }
+  }
+}
+
+/* 4.7 o preço pisca uma vez quando o card entra */
+.price-block { animation: precoAcende .9s ease-out backwards; animation-delay: calc(var(--i,0) * 26ms + .25s); }
+@keyframes precoAcende {
+  0%   { filter: brightness(1); }
+  35%  { filter: brightness(1.4); }
+  100% { filter: brightness(1); }
+}
+
+/* ============================================================
+   5. BOTÕES — feixe de luz atravessando
+   ============================================================ */
+.btn { position: relative; overflow: hidden; }
+.btn:active { transform: scale(.97); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn-gold::after, .btn-wa::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg,
+      transparent 44%, rgba(255,255,255,.34) 50%, transparent 56%);
+    background-size: 300% 100%;
+    background-repeat: no-repeat;
+    background-position: 130% 0;
+    pointer-events: none;
+    animation: feixe 4.6s ease-in-out infinite;
+  }
+  .btn-wa::after { animation-delay: 1.4s; }
+  @keyframes feixe {
+    0%, 55% { background-position: 130% 0; }
+    82%     { background-position: -30% 0; }
+    100%    { background-position: -30% 0; }
+  }
+}
+
+/* ============================================================
+   6. BOTÃO FLUTUANTE DO WHATSAPP
+   Dois anéis e uma sacudida a cada tanto — sem virar praga.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  .fab::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--wa);
+    animation: anelWa 2.6s ease-out infinite 1.3s;
+    pointer-events: none;
+  }
+  @keyframes anelWa {
+    0%   { transform: scale(1);   opacity: .6; }
+    100% { transform: scale(1.75); opacity: 0; }
+  }
+  .fab { animation: fabPop .5s ease 1s both, sacudir 7s ease-in-out 3s infinite; }
+  @keyframes sacudir {
+    0%, 86%, 100% { transform: translateY(0)   rotate(0); }
+    89%           { transform: translateY(-6px) rotate(-8deg); }
+    93%           { transform: translateY(0)    rotate(6deg); }
+    96%           { transform: translateY(-2px) rotate(0); }
+  }
+}
+.fab:active { transform: scale(.92); }
+
+/* ============================================================
+   7. FILTROS DE MODALIDADE E ABAS
+   ============================================================ */
+#modalTabs .tab { transition: transform .16s cubic-bezier(.2,.9,.25,1), background .2s, color .2s, border-color .2s; }
+#modalTabs .tab:active { transform: scale(.95); }
+
+/* ============================================================
+   8. BUSCA — sugestões entrando de baixo
+   ============================================================ */
+#buscaSugestoes button { transition: transform .14s ease, background .2s ease; }
+#buscaSugestoes button:active { transform: scale(.98); }
+#buscaSugestoes:not([hidden]) { animation: sugereEntra .22s ease-out; }
+@keyframes sugereEntra {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ============================================================
+   9. MOBILE — alvo de toque e conforto no iPhone
+   ============================================================ */
+@media (max-width: 720px) {
+  .area-btn { min-height: 62px; }        /* bem acima dos 44 pt da Apple */
+  .card     { padding: 20px; }
+  .card-cta { min-height: 34px; }
+  .fab      { bottom: calc(22px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Nada de zoom automático do Safari ao focar um campo. */
+input, select, textarea { font-size: 16px; }
+
+/* ============================================================
+   10. QUEM PEDIU MENOS MOVIMENTO, RECEBE MENOS MOVIMENTO
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .card, .price-block, #buscaSugestoes:not([hidden]) { animation: none !important; }
+  .card::after, .btn-gold::after, .btn-wa::after, .fab::after { display: none; }
+  .fab { animation: none; }
+  .ic * { animation: none !important; }
+  .play-btn { transition: opacity .2s ease; }
+}
+
+/* ============================================================
+   11. ÍCONES MIÚDOS — os que entraram no lugar dos emojis
+   soltos (selos, dados do curso, cidades, telefone).
+   Herdam cor e tamanho do texto: não brigam com o layout.
+   ============================================================ */
+.ic-mini {
+  display: inline-block;
+  width: 1.05em;
+  height: 1.05em;
+  vertical-align: -.16em;
+  margin-right: .42em;
+  flex: none;
+  opacity: .95;
+}
+
+/* o pino da cidade dá um pulinho, um de cada vez */
+@media (prefers-reduced-motion: no-preference) {
+  .city .ic-mini { animation: pino 5s ease-in-out infinite; }
+  .city:nth-of-type(2) .ic-mini { animation-delay: .4s; }
+  .city:nth-of-type(3) .ic-mini { animation-delay: .8s; }
+  @keyframes pino {
+    0%, 78%, 100% { transform: translateY(0); }
+    85%           { transform: translateY(-3px); }
+    92%           { transform: translateY(0); }
+  }
+
+  /* faísca do selo "primeira turma" cintilando */
+  .tag .ic-mini { animation: brilhar 2.8s ease-in-out infinite; }
+
+  /* mãozinha do "Fale conosco" acenando */
+  .fab-label .ic-mini { transform-origin: bottom center; animation: acenar 3.6s ease-in-out infinite; }
+  @keyframes acenar {
+    0%, 70%, 100% { transform: rotate(0); }
+    76%           { transform: rotate(16deg); }
+    82%           { transform: rotate(-12deg); }
+    88%           { transform: rotate(10deg); }
+    94%           { transform: rotate(0); }
+  }
+}
+
+/* ============================================================
+   12. CHECK DE "CADASTRO FEITO" — se desenha na tela
+   ============================================================ */
+.ok-ic { color: var(--wa); line-height: 0; }
+.ic-ok { width: 68px; height: 68px; display: inline-block; }
+.ic-ok .ok-circulo { stroke-dasharray: 145; stroke-dashoffset: 145; animation: riscarCirculo .6s cubic-bezier(.2,.9,.25,1) forwards; }
+.ic-ok .ok-risco   { stroke-dasharray: 40;  stroke-dashoffset: 40;  animation: riscarCheck .35s cubic-bezier(.2,.9,.25,1) .45s forwards; }
+@keyframes riscarCirculo { to { stroke-dashoffset: 0; } }
+@keyframes riscarCheck   { to { stroke-dashoffset: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ic-ok .ok-circulo, .ic-ok .ok-risco { stroke-dashoffset: 0; animation: none; }
+  .city .ic-mini, .tag .ic-mini, .fab-label .ic-mini { animation: none; }
+}
+
+/* dados do curso no modal: ícone e texto alinhados */
+.modal-facts span { display: inline-flex; align-items: center; }
+/* .fab-label fica de fora: ele é escondido abaixo de 560px pelo styles.css
+   e mexer no display aqui ressuscitaria o balão em cima do botão no celular */
+.tag, .city, .float-tag { display: inline-flex; align-items: center; }
+.fab-label .ic-mini { margin-right: 0; margin-left: .4em; }
+.phone { display: flex; align-items: center; }
+.modal-facts .ic-mini { width: 1.15em; height: 1.15em; opacity: 1; }
